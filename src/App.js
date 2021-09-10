@@ -1,40 +1,35 @@
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import classNames from "classnames";
-import { loadTodos, saveTodos } from "./database/todo";
-
-/*
-todo = {
-  id: uuid,
-  title: string,
-  isCompleted: boolean,
-}
-*/
+import { saveTodos } from "./database/todo";
+import axios from "axios";
 
 export default function App() {
-  const [todos, setTodos] = useState(() => loadTodos());
+  const [todos, setTodos] = useState([]);
+  useEffect(() => {
+    getlist();
+  }, []);
+  function getlist() {
+    axios.get("todoList").then((ress) => {
+      setTodos(ress);
+    });
+  }
 
   function createTodo(todoItem) {
-    setTodos(todos.concat(todoItem));
+    axios.post("create", { ...todoItem }).then((ress) => {
+      getlist();
+    });
   }
 
   function toggleTodoComplete(id) {
-    setTodos((todos) =>
-      todos.map((todo) => {
-        if (todo.id === id) {
-          return {
-            ...todo,
-            isCompleted: !todo.isCompleted,
-          };
-        }
-        return todo;
-      })
-    );
+    axios.post("update/" + id).then((ress) => {
+      getlist();
+    });
   }
 
   function handleDeleteTodo(id) {
-    setTodos((todos) => {
-      return todos.filter((todo) => todo.id !== id);
+    axios.post("delete/" + id).then((ress) => {
+      getlist();
     });
   }
 
@@ -43,8 +38,6 @@ export default function App() {
     saveTodos(todos);
   }, [todos]);
 
-  const activeTodos = todos.filter((e) => !e.isCompleted);
-  const completedTodos = todos.filter((e) => e.isCompleted);
 
   return (
     <div className="p-5">
@@ -73,8 +66,8 @@ export default function App() {
       {/* Tampilkan Datanya */}
       <div className="mt-3">
         <h4>Harus dikerjakan:</h4>
-        {activeTodos.length !== 0 ? (
-          activeTodos.map((todo) => (
+        {todos.filter((e) => !e.isCompleted).length !== 0 ? (
+          todos.filter((e) => !e.isCompleted).map((todo) => (
             <div key={todo.id} className="flex items-center gap-2">
               <button onClick={() => toggleTodoComplete(todo.id)}>
                 &#9711;
@@ -97,10 +90,10 @@ export default function App() {
       </div>
 
       {/* Tampilkan item yang sudah complete */}
-      {completedTodos.length !== 0 && (
+      {todos.filter((e) => e.isCompleted).length !== 0 && (
         <div className="mt-3">
           <h4>Selesai:</h4>
-          {completedTodos.map((todo) => (
+          {todos.filter((e) => e.isCompleted).map((todo) => (
             <div
               key={todo.id}
               className="group relative flex items-center gap-2"
