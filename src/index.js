@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import axios from "axios";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 axios.defaults.baseURL = "https://apitodolistrakamin.herokuapp.com";
 axios.defaults.headers.get["Accept"] = "application/json";
@@ -17,10 +18,13 @@ axios.interceptors.response.use(
     console.log("something wrong! ", error);
   }
 );
+const queryClient = new QueryClient();
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </React.StrictMode>,
   document.getElementById("root")
 );
